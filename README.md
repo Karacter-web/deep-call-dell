@@ -1,29 +1,51 @@
-# Welcome to your Lovable project
+# Karacter Hub | Deep Call Live
 
-This project was built with [Lovable](https://lovable.dev).
+Real-time call studio: inbound Twilio calls are transcribed, translated and streamed
+live into a split-screen operator UI.
 
-## Build with Lovable
+- **Frontend** — React + TanStack Start (Vite), Tailwind CSS, Socket.io client. Route: `/call-studio` (`/` redirects there).
+- **Backend** — FastAPI + Socket.io (`backend/`), Whisper STT, DeepL translation, ElevenLabs TTS, Twilio Media Streams.
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+## Frontend setup
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+```bash
+npm install
+cp .env.example .env      # optional: set VITE_BACKEND_WS_URL
+npm run dev               # http://localhost:8080
 ```
 
-## Built with
+If `VITE_BACKEND_WS_URL` is unset, the studio runs a built-in **mock stream** so the UI is
+fully usable before the Python service is running. Set it to the FastAPI origin
+(`http://localhost:8000`) to consume real Socket.io events.
 
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
+### Structure
+
+```
+src/
+├── routes/call-studio.tsx           # main studio page
+├── context/CallStudioContext.tsx    # call/translation/language state (React Context)
+├── lib/studio-stream.ts             # Socket.io client + mock fallback
+└── components/call/
+    ├── AudioInput.tsx               # mic monitoring + level meter + call status
+    ├── IncomingTextFrame.tsx        # raw STT output
+    ├── TranslatedTextFrame.tsx      # translated output
+    └── CallControls.tsx             # start/end, translation, sound tuning, languages
+```
+
+## Backend setup
+
+See [`backend/README.md`](backend/README.md) for endpoints, example API calls and the
+full Twilio configuration guide.
+
+## Docker
+
+```bash
+cp .env.example .env      # fill in API keys
+docker compose up --build
+```
+
+- Frontend → http://localhost:3000
+- Backend  → http://localhost:8000 (docs at `/docs`)
+
+Both images use multi-stage builds. For Twilio, point `PUBLIC_BASE_URL` at a public HTTPS
+tunnel (e.g. `ngrok http 8000`) and set the number's voice webhook to `POST /incoming-call`.
