@@ -13,7 +13,7 @@ export function SiteHeader() {
     await queryClient.cancelQueries();
     queryClient.clear();
     await signOut();
-    await navigate({ to: "/login", replace: true });
+    await navigate({ to: "/login", search: {}, replace: true });
   }
 
   return (
@@ -49,7 +49,7 @@ export function SiteHeader() {
         ) : (
           <div className="flex items-center gap-2">
             <Button asChild size="sm" variant="ghost">
-              <Link to="/login">Sign in</Link>
+              <Link to="/login" search={}>Sign in</Link>
             </Button>
             <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
               <Link to="/signup">Start Free Trial</Link>

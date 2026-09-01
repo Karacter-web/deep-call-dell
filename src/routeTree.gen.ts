@@ -14,6 +14,8 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as ApiReferenceRouteImport } from './routes/api-reference'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DocsRouteImport } from './routes/docs'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthenticatedCallStudioRouteImport } from './routes/_authenticated/call-studio'
@@ -42,6 +44,16 @@ const DocsRoute = DocsRouteImport.update({
   path: '/docs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
@@ -63,6 +75,8 @@ export interface FileRoutesByFullPath {
   '/api-reference': typeof ApiReferenceRoute
   '/contact': typeof ContactRoute
   '/docs': typeof DocsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/signup': typeof SignupRoute
   '/call-studio': typeof AuthenticatedCallStudioRoute
@@ -72,6 +86,8 @@ export interface FileRoutesByTo {
   '/api-reference': typeof ApiReferenceRoute
   '/contact': typeof ContactRoute
   '/docs': typeof DocsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/signup': typeof SignupRoute
   '/call-studio': typeof AuthenticatedCallStudioRoute
@@ -83,6 +99,8 @@ export interface FileRoutesById {
   '/api-reference': typeof ApiReferenceRoute
   '/contact': typeof ContactRoute
   '/docs': typeof DocsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/signup': typeof SignupRoute
   '/_authenticated/call-studio': typeof AuthenticatedCallStudioRoute
@@ -94,6 +112,8 @@ export interface FileRouteTypes {
     | '/api-reference'
     | '/contact'
     | '/docs'
+    | '/forgot-password'
+    | '/login'
     | '/privacy'
     | '/signup'
     | '/call-studio'
@@ -103,6 +123,8 @@ export interface FileRouteTypes {
     | '/api-reference'
     | '/contact'
     | '/docs'
+    | '/forgot-password'
+    | '/login'
     | '/privacy'
     | '/signup'
     | '/call-studio'
@@ -113,6 +135,8 @@ export interface FileRouteTypes {
     | '/api-reference'
     | '/contact'
     | '/docs'
+    | '/forgot-password'
+    | '/login'
     | '/privacy'
     | '/signup'
     | '/_authenticated/call-studio'
@@ -124,6 +148,8 @@ export interface RootRouteChildren {
   ApiReferenceRoute: typeof ApiReferenceRoute
   ContactRoute: typeof ContactRoute
   DocsRoute: typeof DocsRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
   SignupRoute: typeof SignupRoute
 }
@@ -163,6 +189,20 @@ declare module '@tanstack/react-router' {
       path: '/docs'
       fullPath: '/docs'
       preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -206,6 +246,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiReferenceRoute: ApiReferenceRoute,
   ContactRoute: ContactRoute,
   DocsRoute: DocsRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
   SignupRoute: SignupRoute,
 }

@@ -1,9 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import type { FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SiteHeader } from "@/components/landing/SiteHeader";
-import { SiteFooter } from "@/components/landing/SiteFooter";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { GoogleButton } from "@/components/auth/GoogleButton";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,7 +31,7 @@ function SignupPage() {
   const [busy, setBusy] = useState(false);
   const [created, setCreated] = useState(false);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
     const form = new FormData(event.currentTarget);
@@ -66,7 +65,7 @@ function SignupPage() {
           We sent a confirmation link to your email address. Confirm it, then return here to sign in.
         </p>
         <p className="mt-6 text-center text-sm">
-          <Link to="/login" className="text-primary hover:underline">Go to sign in</Link>
+          <Link to="/login" search={{}} className="text-primary hover:underline">Go to sign in</Link>
         </p>
       </AuthShell>
     );
@@ -76,7 +75,7 @@ function SignupPage() {
     <AuthShell
       title="Start your free trial"
       subtitle="100 call minutes a month. No card required."
-      footer={<>Already have an account? <Link to="/login" className="text-primary hover:underline">Sign in</Link></>}
+      footer={<>Already have an account? <Link to="/login" search={{}} className="text-primary hover:underline">Sign in</Link></>}
     >
       <div className="space-y-4">
         <GoogleButton label="Sign up with Google" />

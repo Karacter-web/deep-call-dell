@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,7 @@ function ForgotPasswordPage() {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
     const form = new FormData(event.currentTarget);
@@ -41,7 +41,7 @@ function ForgotPasswordPage() {
   }
 
   return (
-    <AuthShell title="Reset your password" subtitle="We’ll email you a secure link to choose a new one." footer={<>Remembered it? <Link to="/login" className="text-primary hover:underline">Back to sign in</Link></>}>
+    <AuthShell title="Reset your password" subtitle="We’ll email you a secure link to choose a new one." footer={<>Remembered it? <Link to="/login" search={{}} className="text-primary hover:underline">Back to sign in</Link></>}>
       {sent ? (
         <p className="text-sm leading-6 text-muted-foreground">If an account exists for that email, a reset link is on its way. Check your inbox and spam folder.</p>
       ) : (
