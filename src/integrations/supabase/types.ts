@@ -14,6 +14,151 @@ export type Database = {
   }
   public: {
     Tables: {
+      call_sessions: {
+        Row: {
+          call_sid: string
+          created_at: string
+          direction: string
+          ended_at: string | null
+          from_number: string | null
+          id: string
+          phone_number_id: string | null
+          source_lang: string
+          started_at: string
+          status: string
+          target_lang: string
+          to_number: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          call_sid: string
+          created_at?: string
+          direction?: string
+          ended_at?: string | null
+          from_number?: string | null
+          id?: string
+          phone_number_id?: string | null
+          source_lang?: string
+          started_at?: string
+          status?: string
+          target_lang?: string
+          to_number?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          call_sid?: string
+          created_at?: string
+          direction?: string
+          ended_at?: string | null
+          from_number?: string | null
+          id?: string
+          phone_number_id?: string | null
+          source_lang?: string
+          started_at?: string
+          status?: string
+          target_lang?: string
+          to_number?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_sessions_phone_number_id_fkey"
+            columns: ["phone_number_id"]
+            isOneToOne: false
+            referencedRelation: "phone_numbers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_transcripts: {
+        Row: {
+          created_at: string
+          id: string
+          is_final: boolean
+          sequence: number
+          session_id: string
+          speaker: string
+          text: string
+          translated_text: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_final?: boolean
+          sequence?: number
+          session_id: string
+          speaker?: string
+          text: string
+          translated_text?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_final?: boolean
+          sequence?: number
+          session_id?: string
+          speaker?: string
+          text?: string
+          translated_text?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_transcripts_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      phone_numbers: {
+        Row: {
+          capabilities: Json
+          country: string
+          created_at: string
+          friendly_name: string | null
+          id: string
+          monthly_price: number | null
+          phone_number: string
+          status: string
+          twilio_sid: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          capabilities?: Json
+          country?: string
+          created_at?: string
+          friendly_name?: string | null
+          id?: string
+          monthly_price?: number | null
+          phone_number: string
+          status?: string
+          twilio_sid?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          capabilities?: Json
+          country?: string
+          created_at?: string
+          friendly_name?: string | null
+          id?: string
+          monthly_price?: number | null
+          phone_number?: string
+          status?: string
+          twilio_sid?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
