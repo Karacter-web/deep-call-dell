@@ -41,7 +41,7 @@ function ForgotPasswordPage() {
   }
 
   return (
-    <AuthShell title="Reset your password" subtitle="We’ll email you a secure link to choose a new one." footer={<>Remembered it? <Link to="/login" search={{}} className="text-primary hover:underline">Back to sign in</Link></>}>
+    <AuthShell title="Reset your password" subtitle="We’ll email you a secure link to choose a new one." footer={<>Remembered it? <Link to="/login" search={{ redirect: undefined }} className="text-primary hover:underline">Back to sign in</Link></>}>
       {sent ? (
         <p className="text-sm leading-6 text-muted-foreground">If an account exists for that email, a reset link is on its way. Check your inbox and spam folder.</p>
       ) : (

@@ -65,7 +65,7 @@ function SignupPage() {
           We sent a confirmation link to your email address. Confirm it, then return here to sign in.
         </p>
         <p className="mt-6 text-center text-sm">
-          <Link to="/login" search={{}} className="text-primary hover:underline">Go to sign in</Link>
+          <Link to="/login" search={{ redirect: undefined }} className="text-primary hover:underline">Go to sign in</Link>
         </p>
       </AuthShell>
     );
@@ -75,7 +75,7 @@ function SignupPage() {
     <AuthShell
       title="Start your free trial"
       subtitle="100 call minutes a month. No card required."
-      footer={<>Already have an account? <Link to="/login" search={{}} className="text-primary hover:underline">Sign in</Link></>}
+      footer={<>Already have an account? <Link to="/login" search={{ redirect: undefined }} className="text-primary hover:underline">Sign in</Link></>}
     >
       <div className="space-y-4">
         <GoogleButton label="Sign up with Google" />
