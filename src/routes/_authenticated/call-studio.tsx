@@ -6,7 +6,7 @@ import { IncomingTextFrame } from "@/components/call/IncomingTextFrame";
 import { TranslatedTextFrame } from "@/components/call/TranslatedTextFrame";
 import { CallControls } from "@/components/call/CallControls";
 
-export const Route = createFileRoute("/call-studio")({
+export const Route = createFileRoute("/_authenticated/call-studio")({
   head: () => ({
     meta: [
       { title: "Call Studio — Karacter Hub | Deep Call Live" },
