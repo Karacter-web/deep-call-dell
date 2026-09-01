@@ -7,7 +7,7 @@ import { AuthShell } from "@/components/auth/AuthShell";
 import { GoogleButton } from "@/components/auth/GoogleButton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -30,6 +30,12 @@ export const Route = createFileRoute("/signup")({
 function SignupPage() {
   const [busy, setBusy] = useState(false);
   const [created, setCreated] = useState(false);
+
+  useEffect(() => {
+    void supabase.auth.getSession().then(({ data }) => {
+      if (data.session) window.location.href = "/call-studio";
+    });
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

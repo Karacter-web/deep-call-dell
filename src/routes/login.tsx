@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,14 @@ function LoginPage() {
   const { redirect } = Route.useSearch();
   const [busy, setBusy] = useState(false);
 
+  useEffect(() => {
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) return;
+      const destination = redirect === "/call-studio" ? "/call-studio" : "/";
+      void navigate({ to: destination });
+    });
+  }, [navigate, redirect]);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
@@ -43,7 +51,7 @@ function LoginPage() {
       toast.error(error.message);
       return;
     }
-    await navigate({ to: redirect?.startsWith("/") ? redirect : "/call-studio" });
+    await navigate({ to: redirect === "/call-studio" ? "/call-studio" : "/" });
   }
 
   return (
