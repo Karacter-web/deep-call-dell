@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as ApiReferenceRouteImport } from './routes/api-reference'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DocsRouteImport } from './routes/docs'
@@ -20,6 +21,10 @@ import { Route as AuthenticatedCallStudioRouteImport } from './routes/_authentic
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiReferenceRoute = ApiReferenceRouteImport.update({
@@ -48,9 +53,9 @@ const SignupRoute = SignupRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedCallStudioRoute = AuthenticatedCallStudioRouteImport.update({
-  id: '/_authenticated/call-studio',
+  id: '/call-studio',
   path: '/call-studio',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -74,6 +79,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/api-reference': typeof ApiReferenceRoute
   '/contact': typeof ContactRoute
   '/docs': typeof DocsRoute
@@ -103,6 +109,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/api-reference'
     | '/contact'
     | '/docs'
@@ -113,12 +120,12 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   ApiReferenceRoute: typeof ApiReferenceRoute
   ContactRoute: typeof ContactRoute
   DocsRoute: typeof DocsRoute
   PrivacyRoute: typeof PrivacyRoute
   SignupRoute: typeof SignupRoute
-  AuthenticatedCallStudioRoute: typeof AuthenticatedCallStudioRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -128,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api-reference': {
@@ -170,19 +184,30 @@ declare module '@tanstack/react-router' {
       path: '/call-studio'
       fullPath: '/call-studio'
       preLoaderRoute: typeof AuthenticatedCallStudioRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCallStudioRoute: typeof AuthenticatedCallStudioRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCallStudioRoute: AuthenticatedCallStudioRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   ApiReferenceRoute: ApiReferenceRoute,
   ContactRoute: ContactRoute,
   DocsRoute: DocsRoute,
   PrivacyRoute: PrivacyRoute,
   SignupRoute: SignupRoute,
-  AuthenticatedCallStudioRoute: AuthenticatedCallStudioRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
