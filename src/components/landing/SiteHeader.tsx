@@ -1,7 +1,21 @@
 import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function SiteHeader() {
+  const { user, loading, signOut } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  async function handleSignOut() {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await signOut();
+    await navigate({ to: "/login", replace: true });
+  }
+
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
@@ -23,9 +37,25 @@ export function SiteHeader() {
             Call Studio
           </Link>
         </nav>
-        <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
-          <Link to="/signup">Start Free Trial</Link>
-        </Button>
+        {loading ? null : user ? (
+          <div className="flex items-center gap-2">
+            <Button asChild size="sm" variant="outline">
+              <Link to="/call-studio">Open studio</Link>
+            </Button>
+            <Button type="button" size="sm" variant="ghost" onClick={() => void handleSignOut()}>
+              Sign out
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Button asChild size="sm" variant="ghost">
+              <Link to="/login">Sign in</Link>
+            </Button>
+            <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
+              <Link to="/signup">Start Free Trial</Link>
+            </Button>
+          </div>
+        )}
       </div>
     </header>
   );

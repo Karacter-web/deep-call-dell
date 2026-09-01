@@ -4,6 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SiteHeader } from "@/components/landing/SiteHeader";
 import { SiteFooter } from "@/components/landing/SiteFooter";
+import { AuthShell } from "@/components/auth/AuthShell";
+import { GoogleButton } from "@/components/auth/GoogleButton";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useState } from "react";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -24,17 +29,65 @@ export const Route = createFileRoute("/signup")({
 });
 
 function SignupPage() {
-  return (
-    <div className="min-h-screen">
-      <SiteHeader />
-      <main className="mx-auto flex max-w-md flex-col px-4 py-16">
-        <h1 className="text-3xl font-bold">Start your free trial</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          100 call minutes a month. No card required.
+  const [busy, setBusy] = useState(false);
+  const [created, setCreated] = useState(false);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    const form = new FormData(event.currentTarget);
+    const email = String(form.get("email") ?? "");
+    const password = String(form.get("password") ?? "");
+    const displayName = String(form.get("name") ?? "").trim();
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { display_name: displayName },
+        emailRedirectTo: window.location.origin,
+      },
+    });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    if (!data.session) {
+      setCreated(true);
+      return;
+    }
+    window.location.href = "/call-studio";
+  }
+
+  if (created) {
+    return (
+      <AuthShell title="Check your inbox" subtitle="One more step before you enter the studio.">
+        <p className="text-sm leading-6 text-muted-foreground">
+          We sent a confirmation link to your email address. Confirm it, then return here to sign in.
         </p>
+        <p className="mt-6 text-center text-sm">
+          <Link to="/login" className="text-primary hover:underline">Go to sign in</Link>
+        </p>
+      </AuthShell>
+    );
+  }
+
+  return (
+    <AuthShell
+      title="Start your free trial"
+      subtitle="100 call minutes a month. No card required."
+      footer={<>Already have an account? <Link to="/login" className="text-primary hover:underline">Sign in</Link></>}
+    >
+      <div className="space-y-4">
+        <GoogleButton label="Sign up with Google" />
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="h-px flex-1 bg-border" />
+          <span>or continue with email</span>
+          <span className="h-px flex-1 bg-border" />
+        </div>
         <form
-          className="panel-surface mt-8 space-y-4 rounded-2xl p-6"
-          onSubmit={(e) => e.preventDefault()}
+          className="space-y-4"
+          onSubmit={(event) => void handleSubmit(event)}
         >
           <div className="space-y-2">
             <Label htmlFor="name">Full name</Label>
@@ -48,21 +101,11 @@ function SignupPage() {
             <Label htmlFor="password">Password</Label>
             <Input id="password" name="password" type="password" autoComplete="new-password" />
           </div>
-          <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-            Create account
+          <Button type="submit" disabled={busy} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+            {busy ? "Creating account…" : "Create account"}
           </Button>
-          <p className="text-center text-xs text-muted-foreground">
-            Accounts aren't live yet — pick an auth provider and I'll wire this form up.
-          </p>
         </form>
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          Prefer to look around first?{" "}
-          <Link to="/call-studio" className="text-primary hover:underline">
-            Open the Call Studio
-          </Link>
-        </p>
-      </main>
-      <SiteFooter />
-    </div>
+      </div>
+    </AuthShell>
   );
 }
