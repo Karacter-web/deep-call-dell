@@ -71,8 +71,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         supabase.from("user_roles").select("role").eq("user_id", userId),
       ]);
       if (cancelled) return;
-      setProfile((profileRow as Profile | null) ?? null);
-      setRoles(((roleRows ?? []) as { role: AppRole }[]).map((r) => r.role));
+      setProfile(profileRow);
+      setRoles(roleRows?.map(({ role }) => role) ?? []);
     })();
 
     return () => {

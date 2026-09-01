@@ -61,7 +61,7 @@ function LoginPage() {
       footer={<>New to Karacter Hub? <Link to="/signup" className="text-primary hover:underline">Create an account</Link></>}
     >
       <div className="space-y-4">
-        <GoogleButton />
+        <GoogleButton redirectPath="/login" />
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="h-px flex-1 bg-border" /><span>or sign in with email</span><span className="h-px flex-1 bg-border" />
         </div>
