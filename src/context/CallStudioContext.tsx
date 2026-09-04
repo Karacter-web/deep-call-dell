@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { connectStudioStream, type StudioStream } from "@/lib/studio-stream";
+import { useLiveCall } from "@/hooks/useLiveCall";
 
 export type CallStatus = "idle" | "connecting" | "active" | "ended";
 
@@ -127,6 +128,8 @@ function reducer(state: State, action: Action): State {
 }
 
 type CallStudioContextValue = State & {
+  liveSessionId: string | null;
+  isLiveCall: boolean;
   startCall: () => void;
   endCall: () => void;
   toggleTranslation: () => void;
@@ -142,6 +145,15 @@ const CallStudioContext = createContext<CallStudioContextValue | null>(null);
 export function CallStudioProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const streamRef = useRef<StudioStream | null>(null);
+
+  const { sessionId: liveSessionId, isLive: isLiveCall } = useLiveCall({
+    onCallStatus: (status, caller) => {
+      dispatch({ type: "status", status });
+      if (caller !== undefined) dispatch({ type: "caller", value: caller });
+    },
+    onIncoming: (line) => dispatch({ type: "incoming", line }),
+    onTranslated: (line) => dispatch({ type: "translated", line }),
+  });
 
   useEffect(() => {
     const stream = connectStudioStream({
@@ -171,6 +183,7 @@ export function CallStudioProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "reset" });
   }, []);
 
+
   useEffect(() => {
     streamRef.current?.updateSettings({
       translationEnabled: state.translationEnabled,
@@ -188,6 +201,8 @@ export function CallStudioProvider({ children }: { children: ReactNode }) {
   const value = useMemo<CallStudioContextValue>(
     () => ({
       ...state,
+      liveSessionId,
+      isLiveCall,
       startCall,
       endCall,
       toggleTranslation: () => dispatch({ type: "toggleTranslation" }),
@@ -195,9 +210,11 @@ export function CallStudioProvider({ children }: { children: ReactNode }) {
       setSourceLang: (v: string) => dispatch({ type: "sourceLang", value: v }),
       setTargetLang: (v: string) => dispatch({ type: "targetLang", value: v }),
       setInputLevel: (v: number) => dispatch({ type: "level", value: v }),
-      sendAudioChunk: (chunk: ArrayBuffer) => streamRef.current?.sendAudioChunk(chunk),
+      sendAudioChunk: (chunk: ArrayBuffer) => {
+        streamRef.current?.sendAudioChunk(chunk);
+      },
     }),
-    [state, startCall, endCall],
+    [state, liveSessionId, isLiveCall, startCall, endCall],
   );
 
   return <CallStudioContext.Provider value={value}>{children}</CallStudioContext.Provider>;
