@@ -20,6 +20,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthenticatedCallStudioRouteImport } from './routes/_authenticated/call-studio'
+import { Route as AuthenticatedNumbersRouteImport } from './routes/_authenticated/numbers'
 import { Route as ApiPublicTwilioStatusRouteImport } from './routes/api/public/twilio/status'
 import { Route as ApiPublicTwilioTranscriptionRouteImport } from './routes/api/public/twilio/transcription'
 import { Route as ApiPublicTwilioVoiceRouteImport } from './routes/api/public/twilio/voice'
@@ -78,6 +79,11 @@ const AuthenticatedCallStudioRoute = AuthenticatedCallStudioRouteImport.update({
   path: '/call-studio',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedNumbersRoute = AuthenticatedNumbersRouteImport.update({
+  id: '/numbers',
+  path: '/numbers',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ApiPublicTwilioStatusRoute = ApiPublicTwilioStatusRouteImport.update({
   id: '/api/public/twilio/status',
   path: '/api/public/twilio/status',
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/call-studio': typeof AuthenticatedCallStudioRoute
+  '/numbers': typeof AuthenticatedNumbersRoute
   '/api/public/twilio/status': typeof ApiPublicTwilioStatusRoute
   '/api/public/twilio/transcription': typeof ApiPublicTwilioTranscriptionRoute
   '/api/public/twilio/voice': typeof ApiPublicTwilioVoiceRoute
@@ -121,6 +128,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/call-studio': typeof AuthenticatedCallStudioRoute
+  '/numbers': typeof AuthenticatedNumbersRoute
   '/api/public/twilio/status': typeof ApiPublicTwilioStatusRoute
   '/api/public/twilio/transcription': typeof ApiPublicTwilioTranscriptionRoute
   '/api/public/twilio/voice': typeof ApiPublicTwilioVoiceRoute
@@ -138,6 +146,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/_authenticated/call-studio': typeof AuthenticatedCallStudioRoute
+  '/_authenticated/numbers': typeof AuthenticatedNumbersRoute
   '/api/public/twilio/status': typeof ApiPublicTwilioStatusRoute
   '/api/public/twilio/transcription': typeof ApiPublicTwilioTranscriptionRoute
   '/api/public/twilio/voice': typeof ApiPublicTwilioVoiceRoute
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/call-studio'
+    | '/numbers'
     | '/api/public/twilio/status'
     | '/api/public/twilio/transcription'
     | '/api/public/twilio/voice'
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/call-studio'
+    | '/numbers'
     | '/api/public/twilio/status'
     | '/api/public/twilio/transcription'
     | '/api/public/twilio/voice'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/_authenticated/call-studio'
+    | '/_authenticated/numbers'
     | '/api/public/twilio/status'
     | '/api/public/twilio/transcription'
     | '/api/public/twilio/voice'
@@ -286,6 +298,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCallStudioRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/numbers': {
+      id: '/_authenticated/numbers'
+      path: '/numbers'
+      fullPath: '/numbers'
+      preLoaderRoute: typeof AuthenticatedNumbersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/twilio/status': {
       id: '/api/public/twilio/status'
       path: '/api/public/twilio/status'
@@ -312,10 +331,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCallStudioRoute: typeof AuthenticatedCallStudioRoute
+  AuthenticatedNumbersRoute: typeof AuthenticatedNumbersRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCallStudioRoute: AuthenticatedCallStudioRoute,
+  AuthenticatedNumbersRoute: AuthenticatedNumbersRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

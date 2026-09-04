@@ -1,10 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Radio } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Radio, Hash } from "lucide-react";
 import { CallStudioProvider, useCallStudio } from "@/context/CallStudioContext";
 import { AudioInput } from "@/components/call/AudioInput";
 import { IncomingTextFrame } from "@/components/call/IncomingTextFrame";
 import { TranslatedTextFrame } from "@/components/call/TranslatedTextFrame";
 import { CallControls } from "@/components/call/CallControls";
+import { SpeakToCaller } from "@/components/call/SpeakToCaller";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/call-studio")({
   head: () => ({
@@ -36,6 +38,7 @@ function CallStudioPage() {
           <IncomingTextFrame />
           <TranslatedTextFrame />
         </div>
+        <SpeakToCaller />
         <CallControls />
       </div>
     </CallStudioProvider>
