@@ -201,6 +201,8 @@ export function CallStudioProvider({ children }: { children: ReactNode }) {
   const value = useMemo<CallStudioContextValue>(
     () => ({
       ...state,
+      liveSessionId,
+      isLiveCall,
       startCall,
       endCall,
       toggleTranslation: () => dispatch({ type: "toggleTranslation" }),
@@ -208,9 +210,11 @@ export function CallStudioProvider({ children }: { children: ReactNode }) {
       setSourceLang: (v: string) => dispatch({ type: "sourceLang", value: v }),
       setTargetLang: (v: string) => dispatch({ type: "targetLang", value: v }),
       setInputLevel: (v: number) => dispatch({ type: "level", value: v }),
-      sendAudioChunk: (chunk: ArrayBuffer) => streamRef.current?.sendAudioChunk(chunk),
+      sendAudioChunk: (chunk: ArrayBuffer) => {
+        streamRef.current?.sendAudioChunk(chunk);
+      },
     }),
-    [state, startCall, endCall],
+    [state, liveSessionId, isLiveCall, startCall, endCall],
   );
 
   return <CallStudioContext.Provider value={value}>{children}</CallStudioContext.Provider>;
