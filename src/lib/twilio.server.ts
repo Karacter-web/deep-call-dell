@@ -45,7 +45,7 @@ export async function twilioRequest<T = unknown>(
 export function publicBaseUrl(): string {
   return (
     process.env["PUBLIC_BASE_URL"] ??
-    `https://project--${process.env["SUPABASE_PROJECT_ID"] ?? ""}.lovable.app`
+    `https://project--3029937e-08ad-4da3-abc6-9375e434379c.lovable.app`
   );
 }
 
