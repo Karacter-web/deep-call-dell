@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { connectStudioStream, type StudioStream } from "@/lib/studio-stream";
+import { useLiveCall } from "@/hooks/useLiveCall";
 
 export type CallStatus = "idle" | "connecting" | "active" | "ended";
 
@@ -127,6 +128,8 @@ function reducer(state: State, action: Action): State {
 }
 
 type CallStudioContextValue = State & {
+  liveSessionId: string | null;
+  isLiveCall: boolean;
   startCall: () => void;
   endCall: () => void;
   toggleTranslation: () => void;
@@ -142,6 +145,15 @@ const CallStudioContext = createContext<CallStudioContextValue | null>(null);
 export function CallStudioProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const streamRef = useRef<StudioStream | null>(null);
+
+  const { sessionId: liveSessionId, isLive: isLiveCall } = useLiveCall({
+    onCallStatus: (status, caller) => {
+      dispatch({ type: "status", status });
+      if (caller !== undefined) dispatch({ type: "caller", value: caller });
+    },
+    onIncoming: (line) => dispatch({ type: "incoming", line }),
+    onTranslated: (line) => dispatch({ type: "translated", line }),
+  });
 
   useEffect(() => {
     const stream = connectStudioStream({
@@ -170,6 +182,7 @@ export function CallStudioProvider({ children }: { children: ReactNode }) {
     streamRef.current?.endCall();
     dispatch({ type: "reset" });
   }, []);
+
 
   useEffect(() => {
     streamRef.current?.updateSettings({
