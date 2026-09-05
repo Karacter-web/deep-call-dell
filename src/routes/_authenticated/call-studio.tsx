@@ -46,7 +46,7 @@ function CallStudioPage() {
 }
 
 function StudioHeader() {
-  const { socketConnected, usingMock } = useCallStudio();
+  const { socketConnected, usingMock, isLiveCall, callerNumber } = useCallStudio();
   return (
     <header className="flex flex-wrap items-center justify-between gap-3">
       <div>
@@ -58,19 +58,33 @@ function StudioHeader() {
           Real-time transcription, translation and sound tuning for inbound Twilio calls.
         </p>
       </div>
-      <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 font-mono text-xs">
-        <Radio
-          className={
-            socketConnected ? "h-3.5 w-3.5 text-primary" : "h-3.5 w-3.5 text-muted-foreground"
-          }
-          aria-hidden
-        />
-        {socketConnected
-          ? usingMock
-            ? "mock stream"
-            : "backend connected"
-          : "disconnected"}
+      <div className="flex flex-wrap items-center gap-2">
+        <Button asChild variant="outline" size="sm">
+          <Link to="/numbers">
+            <Hash className="h-4 w-4" /> Phone numbers
+          </Link>
+        </Button>
+        <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 font-mono text-xs">
+          <Radio
+            className={
+              isLiveCall || socketConnected
+                ? "h-3.5 w-3.5 text-primary"
+                : "h-3.5 w-3.5 text-muted-foreground"
+            }
+            aria-hidden
+          />
+          {isLiveCall
+            ? `live call${callerNumber ? ` · ${callerNumber}` : ""}`
+            : socketConnected
+              ? usingMock
+                ? "mock stream"
+                : "backend connected"
+              : "waiting for calls"}
+        </div>
       </div>
+    </header>
+  );
+}
     </header>
   );
 }
