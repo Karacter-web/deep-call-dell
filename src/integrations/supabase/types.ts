@@ -207,6 +207,113 @@ export type Database = {
         }
         Relationships: []
       }
+      voice_models: {
+        Row: {
+          created_at: string
+          description: string | null
+          gender: string
+          id: string
+          is_default: boolean
+          is_preset: boolean
+          language: string
+          name: string
+          pitch: number
+          provider: string
+          provider_voice_id: string | null
+          sample_path: string | null
+          similarity: number
+          speed: number
+          stability: number
+          status: string
+          style: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          gender?: string
+          id?: string
+          is_default?: boolean
+          is_preset?: boolean
+          language?: string
+          name: string
+          pitch?: number
+          provider?: string
+          provider_voice_id?: string | null
+          sample_path?: string | null
+          similarity?: number
+          speed?: number
+          stability?: number
+          status?: string
+          style?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          gender?: string
+          id?: string
+          is_default?: boolean
+          is_preset?: boolean
+          language?: string
+          name?: string
+          pitch?: number
+          provider?: string
+          provider_voice_id?: string | null
+          sample_path?: string | null
+          similarity?: number
+          speed?: number
+          stability?: number
+          status?: string
+          style?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      voice_samples: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          file_path: string
+          id: string
+          label: string | null
+          size_bytes: number | null
+          user_id: string
+          voice_model_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          file_path: string
+          id?: string
+          label?: string | null
+          size_bytes?: number | null
+          user_id: string
+          voice_model_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          file_path?: string
+          id?: string
+          label?: string | null
+          size_bytes?: number | null
+          user_id?: string
+          voice_model_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_samples_voice_model_id_fkey"
+            columns: ["voice_model_id"]
+            isOneToOne: false
+            referencedRelation: "voice_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
