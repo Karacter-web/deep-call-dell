@@ -85,6 +85,3 @@ function StudioHeader() {
     </header>
   );
 }
-    </header>
-  );
-}
