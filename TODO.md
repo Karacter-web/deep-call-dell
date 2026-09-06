@@ -1,5 +1,13 @@
 # Karacter Hub | Deep Call Live — Implementation Roadmap
 
+> **Workspace move (2026-09-06):** Project was migrated to a new workspace.
+> Connectors/secrets from the previous workspace do not carry over. Twilio was
+> re-linked fresh (`std_01m1tjbfpdfhha72yj0dmw71ej`, gateway-backed) and its
+> credentials verified. `LOVABLE_API_KEY`, `TWILIO_API_KEY`, and
+> `TWILIO_WEBHOOK_TOKEN` are all present. Existing `src/lib/twilio.server.ts`
+> already targets the gateway, so no code change was needed. Re-verify any
+> other previously-connected integrations on first use.
+
 A living to-do list of suggested improvements across the frontend, backend,
 telephony, voice models, auth/security, and ops. Items are grouped by area and
 roughly ordered by priority within each group. Check things off as you go.
