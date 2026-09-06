@@ -44,8 +44,7 @@ export async function twilioRequest<T = unknown>(
 /** Public base URL Twilio should call back on. */
 export function publicBaseUrl(): string {
   return (
-    process.env["PUBLIC_BASE_URL"] ??
-    `https://project--3029937e-08ad-4da3-abc6-9375e434379c.lovable.app`
+    process.env["PUBLIC_BASE_URL"] ?? "https://deep-call-flow.vercel.app"
   );
 }
 

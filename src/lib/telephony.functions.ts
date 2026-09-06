@@ -15,6 +15,7 @@ const searchSchema = z.object({
   country: z.string().min(2).max(2).default("US"),
   areaCode: z.string().max(6).optional(),
   contains: z.string().max(20).optional(),
+  smsEnabled: z.boolean().default(false),
 });
 
 /** Search Twilio for buyable local numbers. */
@@ -24,6 +25,7 @@ export const searchNumbers = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<AvailableNumber[]> => {
     const { twilioRequest } = await import("@/lib/twilio.server");
     const query: Record<string, string> = { PageSize: "20", VoiceEnabled: "true" };
+    if (data.smsEnabled) query["SmsEnabled"] = "true";
     if (data.areaCode) query["AreaCode"] = data.areaCode;
     if (data.contains) query["Contains"] = data.contains;
 
@@ -75,6 +77,8 @@ export const purchaseNumber = createServerFn({ method: "POST" })
         FriendlyName: data.friendlyName ?? "Karacter Hub | Deep Call Live",
         VoiceUrl: `${base}/api/public/twilio/voice?t=${token}`,
         VoiceMethod: "POST",
+        SmsUrl: `${base}/api/public/twilio/sms?t=${token}`,
+        SmsMethod: "POST",
         StatusCallback: `${base}/api/public/twilio/status?t=${token}`,
         StatusCallbackMethod: "POST",
       },
@@ -199,4 +203,33 @@ export const hangUpCall = createServerFn({ method: "POST" })
       .update({ status: "ended", ended_at: new Date().toISOString() })
       .eq("id", session.id);
     return { ok: true };
+  });
+
+/** Send an SMS from one of the user's own numbers. */
+export const sendSms = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        fromId: z.string().uuid(),
+        to: z.string().min(5).max(20),
+        body: z.string().min(1).max(1000),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase
+      .from("phone_numbers")
+      .select("phone_number")
+      .eq("id", data.fromId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) throw new Error("Number not found");
+
+    const { twilioRequest } = await import("@/lib/twilio.server");
+    const sent = await twilioRequest<{ sid: string }>("/Messages.json", {
+      method: "POST",
+      form: { From: row.phone_number, To: data.to, Body: data.body },
+    });
+    return { sid: sent.sid };
   });
