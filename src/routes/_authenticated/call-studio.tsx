@@ -46,7 +46,7 @@ function CallStudioPage() {
 }
 
 function StudioHeader() {
-  const { socketConnected, usingMock, isLiveCall, callerNumber } = useCallStudio();
+  const { isLiveCall, callerNumber } = useCallStudio();
   return (
     <header className="flex flex-wrap items-center justify-between gap-3">
       <div>
@@ -72,19 +72,13 @@ function StudioHeader() {
         <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 font-mono text-xs">
           <Radio
             className={
-              isLiveCall || socketConnected
-                ? "h-3.5 w-3.5 text-primary"
-                : "h-3.5 w-3.5 text-muted-foreground"
+              isLiveCall ? "h-3.5 w-3.5 text-primary" : "h-3.5 w-3.5 text-muted-foreground"
             }
             aria-hidden
           />
           {isLiveCall
             ? `live call${callerNumber ? ` · ${callerNumber}` : ""}`
-            : socketConnected
-              ? usingMock
-                ? "mock stream"
-                : "backend connected"
-              : "waiting for calls"}
+            : "waiting for calls"}
         </div>
       </div>
     </header>

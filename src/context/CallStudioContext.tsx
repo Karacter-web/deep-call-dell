@@ -2,13 +2,10 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useReducer,
-  useRef,
   type ReactNode,
 } from "react";
-import { connectStudioStream, type StudioStream } from "@/lib/studio-stream";
 import { useLiveCall } from "@/hooks/useLiveCall";
 
 export type CallStatus = "idle" | "connecting" | "active" | "ended";
@@ -35,8 +32,6 @@ export const LANGUAGES = [
 
 type State = {
   callStatus: CallStatus;
-  socketConnected: boolean;
-  usingMock: boolean;
   translationEnabled: boolean;
   soundTuningEnabled: boolean;
   sourceLang: string;
@@ -50,7 +45,6 @@ type State = {
 
 type Action =
   | { type: "status"; status: CallStatus }
-  | { type: "socket"; connected: boolean; mock: boolean }
   | { type: "toggleTranslation" }
   | { type: "toggleSoundTuning" }
   | { type: "sourceLang"; value: string }
@@ -63,8 +57,6 @@ type Action =
 
 const initialState: State = {
   callStatus: "idle",
-  socketConnected: false,
-  usingMock: true,
   translationEnabled: true,
   soundTuningEnabled: true,
   sourceLang: "en",
@@ -93,8 +85,6 @@ function reducer(state: State, action: Action): State {
         startedAt:
           action.status === "active" ? (state.startedAt ?? Date.now()) : state.startedAt,
       };
-    case "socket":
-      return { ...state, socketConnected: action.connected, usingMock: action.mock };
     case "toggleTranslation":
       return { ...state, translationEnabled: !state.translationEnabled };
     case "toggleSoundTuning":
@@ -118,8 +108,6 @@ function reducer(state: State, action: Action): State {
         soundTuningEnabled: state.soundTuningEnabled,
         sourceLang: state.sourceLang,
         targetLang: state.targetLang,
-        socketConnected: state.socketConnected,
-        usingMock: state.usingMock,
         callStatus: "ended",
       };
     default:
@@ -130,21 +118,18 @@ function reducer(state: State, action: Action): State {
 type CallStudioContextValue = State & {
   liveSessionId: string | null;
   isLiveCall: boolean;
-  startCall: () => void;
   endCall: () => void;
   toggleTranslation: () => void;
   toggleSoundTuning: () => void;
   setSourceLang: (v: string) => void;
   setTargetLang: (v: string) => void;
   setInputLevel: (v: number) => void;
-  sendAudioChunk: (chunk: ArrayBuffer) => void;
 };
 
 const CallStudioContext = createContext<CallStudioContextValue | null>(null);
 
 export function CallStudioProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const streamRef = useRef<StudioStream | null>(null);
 
   const { sessionId: liveSessionId, isLive: isLiveCall } = useLiveCall({
     onCallStatus: (status, caller) => {
@@ -155,66 +140,23 @@ export function CallStudioProvider({ children }: { children: ReactNode }) {
     onTranslated: (line) => dispatch({ type: "translated", line }),
   });
 
-  useEffect(() => {
-    const stream = connectStudioStream({
-      onStatus: (connected, mock) => dispatch({ type: "socket", connected, mock }),
-      onIncoming: (line) => dispatch({ type: "incoming", line }),
-      onTranslated: (line) => dispatch({ type: "translated", line }),
-      onCallStatus: (status, callerNumber) => {
-        dispatch({ type: "status", status });
-        if (callerNumber !== undefined) dispatch({ type: "caller", value: callerNumber });
-      },
-      onLevel: (value) => dispatch({ type: "level", value }),
-    });
-    streamRef.current = stream;
-    return () => {
-      stream.dispose();
-      streamRef.current = null;
-    };
-  }, []);
-
-  const startCall = useCallback(() => {
-    dispatch({ type: "status", status: "connecting" });
-    streamRef.current?.startCall();
-  }, []);
-
   const endCall = useCallback(() => {
-    streamRef.current?.endCall();
     dispatch({ type: "reset" });
   }, []);
-
-
-  useEffect(() => {
-    streamRef.current?.updateSettings({
-      translationEnabled: state.translationEnabled,
-      soundTuningEnabled: state.soundTuningEnabled,
-      sourceLang: state.sourceLang,
-      targetLang: state.targetLang,
-    });
-  }, [
-    state.translationEnabled,
-    state.soundTuningEnabled,
-    state.sourceLang,
-    state.targetLang,
-  ]);
 
   const value = useMemo<CallStudioContextValue>(
     () => ({
       ...state,
       liveSessionId,
       isLiveCall,
-      startCall,
       endCall,
       toggleTranslation: () => dispatch({ type: "toggleTranslation" }),
       toggleSoundTuning: () => dispatch({ type: "toggleSoundTuning" }),
       setSourceLang: (v: string) => dispatch({ type: "sourceLang", value: v }),
       setTargetLang: (v: string) => dispatch({ type: "targetLang", value: v }),
       setInputLevel: (v: number) => dispatch({ type: "level", value: v }),
-      sendAudioChunk: (chunk: ArrayBuffer) => {
-        streamRef.current?.sendAudioChunk(chunk);
-      },
     }),
-    [state, liveSessionId, isLiveCall, startCall, endCall],
+    [state, liveSessionId, isLiveCall, endCall],
   );
 
   return <CallStudioContext.Provider value={value}>{children}</CallStudioContext.Provider>;

@@ -22,6 +22,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthenticatedCallStudioRouteImport } from './routes/_authenticated/call-studio'
 import { Route as AuthenticatedNumbersRouteImport } from './routes/_authenticated/numbers'
 import { Route as AuthenticatedVoiceModelsRouteImport } from './routes/_authenticated/voice-models'
+import { Route as ApiPublicTwilioSmsRouteImport } from './routes/api/public/twilio/sms'
 import { Route as ApiPublicTwilioStatusRouteImport } from './routes/api/public/twilio/status'
 import { Route as ApiPublicTwilioTranscriptionRouteImport } from './routes/api/public/twilio/transcription'
 import { Route as ApiPublicTwilioVoiceRouteImport } from './routes/api/public/twilio/voice'
@@ -91,6 +92,11 @@ const AuthenticatedVoiceModelsRoute =
     path: '/voice-models',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicTwilioSmsRoute = ApiPublicTwilioSmsRouteImport.update({
+  id: '/api/public/twilio/sms',
+  path: '/api/public/twilio/sms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTwilioStatusRoute = ApiPublicTwilioStatusRouteImport.update({
   id: '/api/public/twilio/status',
   path: '/api/public/twilio/status',
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/call-studio': typeof AuthenticatedCallStudioRoute
   '/numbers': typeof AuthenticatedNumbersRoute
   '/voice-models': typeof AuthenticatedVoiceModelsRoute
+  '/api/public/twilio/sms': typeof ApiPublicTwilioSmsRoute
   '/api/public/twilio/status': typeof ApiPublicTwilioStatusRoute
   '/api/public/twilio/transcription': typeof ApiPublicTwilioTranscriptionRoute
   '/api/public/twilio/voice': typeof ApiPublicTwilioVoiceRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/call-studio': typeof AuthenticatedCallStudioRoute
   '/numbers': typeof AuthenticatedNumbersRoute
   '/voice-models': typeof AuthenticatedVoiceModelsRoute
+  '/api/public/twilio/sms': typeof ApiPublicTwilioSmsRoute
   '/api/public/twilio/status': typeof ApiPublicTwilioStatusRoute
   '/api/public/twilio/transcription': typeof ApiPublicTwilioTranscriptionRoute
   '/api/public/twilio/voice': typeof ApiPublicTwilioVoiceRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/_authenticated/call-studio': typeof AuthenticatedCallStudioRoute
   '/_authenticated/numbers': typeof AuthenticatedNumbersRoute
   '/_authenticated/voice-models': typeof AuthenticatedVoiceModelsRoute
+  '/api/public/twilio/sms': typeof ApiPublicTwilioSmsRoute
   '/api/public/twilio/status': typeof ApiPublicTwilioStatusRoute
   '/api/public/twilio/transcription': typeof ApiPublicTwilioTranscriptionRoute
   '/api/public/twilio/voice': typeof ApiPublicTwilioVoiceRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/call-studio'
     | '/numbers'
     | '/voice-models'
+    | '/api/public/twilio/sms'
     | '/api/public/twilio/status'
     | '/api/public/twilio/transcription'
     | '/api/public/twilio/voice'
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/call-studio'
     | '/numbers'
     | '/voice-models'
+    | '/api/public/twilio/sms'
     | '/api/public/twilio/status'
     | '/api/public/twilio/transcription'
     | '/api/public/twilio/voice'
@@ -211,6 +222,7 @@ export interface FileRouteTypes {
     | '/_authenticated/call-studio'
     | '/_authenticated/numbers'
     | '/_authenticated/voice-models'
+    | '/api/public/twilio/sms'
     | '/api/public/twilio/status'
     | '/api/public/twilio/transcription'
     | '/api/public/twilio/voice'
@@ -227,6 +239,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  ApiPublicTwilioSmsRoute: typeof ApiPublicTwilioSmsRoute
   ApiPublicTwilioStatusRoute: typeof ApiPublicTwilioStatusRoute
   ApiPublicTwilioTranscriptionRoute: typeof ApiPublicTwilioTranscriptionRoute
   ApiPublicTwilioVoiceRoute: typeof ApiPublicTwilioVoiceRoute
@@ -325,6 +338,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVoiceModelsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/twilio/sms': {
+      id: '/api/public/twilio/sms'
+      path: '/api/public/twilio/sms'
+      fullPath: '/api/public/twilio/sms'
+      preLoaderRoute: typeof ApiPublicTwilioSmsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/twilio/status': {
       id: '/api/public/twilio/status'
       path: '/api/public/twilio/status'
@@ -375,6 +395,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  ApiPublicTwilioSmsRoute: ApiPublicTwilioSmsRoute,
   ApiPublicTwilioStatusRoute: ApiPublicTwilioStatusRoute,
   ApiPublicTwilioTranscriptionRoute: ApiPublicTwilioTranscriptionRoute,
   ApiPublicTwilioVoiceRoute: ApiPublicTwilioVoiceRoute,

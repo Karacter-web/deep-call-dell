@@ -2,14 +2,17 @@ import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Mic2, Phone, PhoneCall, Search, Trash2 } from "lucide-react";
+import { Loader2, MessageSquare, Mic2, Phone, PhoneCall, Search, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   listMyNumbers,
+  sendSms,
   purchaseNumber,
   releaseNumber,
   searchNumbers,
@@ -45,16 +48,23 @@ function NumbersPage() {
   const search = useServerFn(searchNumbers);
   const buy = useServerFn(purchaseNumber);
   const release = useServerFn(releaseNumber);
+  const sms = useServerFn(sendSms);
 
   const [country, setCountry] = useState("US");
   const [areaCode, setAreaCode] = useState("");
+  const [smsOnly, setSmsOnly] = useState(true);
   const [results, setResults] = useState<AvailableNumber[] | null>(null);
+  const [smsTo, setSmsTo] = useState("");
+  const [smsBody, setSmsBody] = useState("");
+  const [smsFrom, setSmsFrom] = useState<string | null>(null);
 
   const mine = useQuery({ queryKey: ["my-numbers"], queryFn: () => fetchMine({}) });
 
   const searchMutation = useMutation({
     mutationFn: () =>
-      search({ data: { country, areaCode: areaCode.trim() || undefined } }),
+      search({
+        data: { country, areaCode: areaCode.trim() || undefined, smsEnabled: smsOnly },
+      }),
     onSuccess: (data) => {
       setResults(data);
       if (data.length === 0) toast.info("No numbers matched — try another area code.");
@@ -77,6 +87,16 @@ function NumbersPage() {
     onSuccess: () => {
       toast.success("Number released");
       void queryClient.invalidateQueries({ queryKey: ["my-numbers"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const smsMutation = useMutation({
+    mutationFn: () =>
+      sms({ data: { fromId: smsFrom!, to: smsTo.trim(), body: smsBody.trim() } }),
+    onSuccess: () => {
+      toast.success("Message sent");
+      setSmsBody("");
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -123,7 +143,22 @@ function NumbersPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
+                  {(n.capabilities as { voice?: boolean } | null)?.voice ? (
+                    <Badge variant="outline">Voice</Badge>
+                  ) : null}
+                  {(n.capabilities as { sms?: boolean; SMS?: boolean } | null)?.sms ||
+                  (n.capabilities as { SMS?: boolean } | null)?.SMS ? (
+                    <Badge variant="outline">SMS</Badge>
+                  ) : null}
                   <Badge variant="secondary">{n.status}</Badge>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Send a text from ${n.phone_number}`}
+                    onClick={() => setSmsFrom(n.id)}
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -182,6 +217,12 @@ function NumbersPage() {
               className="w-32"
             />
           </div>
+          <div className="flex items-center gap-2 pb-2.5">
+            <Switch id="sms-only" checked={smsOnly} onCheckedChange={setSmsOnly} />
+            <Label htmlFor="sms-only" className="text-xs text-muted-foreground">
+              SMS capable
+            </Label>
+          </div>
           <Button type="submit" disabled={searchMutation.isPending}>
             {searchMutation.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -203,6 +244,8 @@ function NumbersPage() {
                   <p className="font-mono text-base">{n.friendlyName}</p>
                   <p className="text-xs text-muted-foreground">
                     {[n.locality, n.region, n.isoCountry].filter(Boolean).join(", ")}
+                    {n.capabilities?.voice ? " · Voice" : ""}
+                    {n.capabilities?.SMS ? " · SMS" : ""}
                   </p>
                 </div>
                 <Button
@@ -215,6 +258,78 @@ function NumbersPage() {
             ))}
           </ul>
         ) : null}
+      </section>
+
+      <section className="panel-surface rounded-2xl p-5">
+        <h2 className="text-lg font-semibold">Send a text</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Pick one of your numbers, then send an SMS straight from it.
+        </p>
+        <form
+          className="mt-4 grid gap-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!smsFrom) {
+              toast.error("Choose one of your numbers first.");
+              return;
+            }
+            smsMutation.mutate();
+          }}
+        >
+          <div className="grid gap-1.5">
+            <Label htmlFor="sms-from" className="text-xs text-muted-foreground">
+              From
+            </Label>
+            <select
+              id="sms-from"
+              value={smsFrom ?? ""}
+              onChange={(e) => setSmsFrom(e.target.value || null)}
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="">Select a number</option>
+              {(mine.data ?? []).map((n) => (
+                <option key={n.id} value={n.id}>
+                  {n.phone_number}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="sms-to" className="text-xs text-muted-foreground">
+              To
+            </Label>
+            <Input
+              id="sms-to"
+              value={smsTo}
+              onChange={(e) => setSmsTo(e.target.value)}
+              placeholder="+15558675310"
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="sms-body" className="text-xs text-muted-foreground">
+              Message
+            </Label>
+            <Textarea
+              id="sms-body"
+              value={smsBody}
+              onChange={(e) => setSmsBody(e.target.value)}
+              rows={3}
+              placeholder="Hi from Karacter Hub"
+            />
+          </div>
+          <Button
+            type="submit"
+            className="w-fit"
+            disabled={smsMutation.isPending || !smsTo.trim() || !smsBody.trim()}
+          >
+            {smsMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+            Send message
+          </Button>
+        </form>
       </section>
     </div>
   );
