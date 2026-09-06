@@ -1,4 +1,8 @@
-import { Languages, PhoneOff, Phone, SlidersHorizontal, ArrowLeftRight } from "lucide-react";
+import { Languages, PhoneOff, SlidersHorizontal, ArrowLeftRight } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { hangUpCall } from "@/lib/telephony.functions";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -14,7 +18,7 @@ import { useCallStudio, LANGUAGES } from "@/context/CallStudioContext";
 export function CallControls() {
   const {
     callStatus,
-    startCall,
+    liveSessionId,
     endCall,
     translationEnabled,
     toggleTranslation,
@@ -25,6 +29,16 @@ export function CallControls() {
     setSourceLang,
     setTargetLang,
   } = useCallStudio();
+
+  const hangUp = useServerFn(hangUpCall);
+  const hangUpMutation = useMutation({
+    mutationFn: (sessionId: string) => hangUp({ data: { sessionId } }),
+    onSuccess: () => {
+      endCall();
+      toast.success("Call ended");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
 
   const live = callStatus === "active" || callStatus === "connecting";
 
@@ -109,15 +123,14 @@ export function CallControls() {
             </Select>
           </div>
 
-          {live ? (
-            <Button type="button" variant="destructive" onClick={endCall}>
-              <PhoneOff className="h-4 w-4" /> End call
-            </Button>
-          ) : (
-            <Button type="button" onClick={startCall}>
-              <Phone className="h-4 w-4" /> Start call
-            </Button>
-          )}
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={!live || !liveSessionId || hangUpMutation.isPending}
+            onClick={() => liveSessionId && hangUpMutation.mutate(liveSessionId)}
+          >
+            <PhoneOff className="h-4 w-4" /> End call
+          </Button>
         </div>
       </div>
     </section>
