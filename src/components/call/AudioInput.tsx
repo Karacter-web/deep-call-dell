@@ -9,8 +9,7 @@ import { useCallStudio } from "@/context/CallStudioContext";
  * Media Streams — this panel monitors the operator side and reports levels.
  */
 export function AudioInput() {
-  const { inputLevel, setInputLevel, callStatus, callerNumber, sendAudioChunk } =
-    useCallStudio();
+  const { inputLevel, setInputLevel, callStatus, callerNumber } = useCallStudio();
   const [micOn, setMicOn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
@@ -41,7 +40,6 @@ export function AudioInput() {
         let sum = 0;
         for (const v of buffer) sum += (v - 128) ** 2;
         setInputLevel(Math.min(1, Math.sqrt(sum / buffer.length) / 40));
-        sendAudioChunk(buffer.slice().buffer);
         raf = requestAnimationFrame(tick);
       };
       raf = requestAnimationFrame(tick);
