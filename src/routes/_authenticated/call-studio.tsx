@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Radio, Hash } from "lucide-react";
+import { Radio, Hash, Mic2 } from "lucide-react";
 import { CallStudioProvider, useCallStudio } from "@/context/CallStudioContext";
 import { AudioInput } from "@/components/call/AudioInput";
 import { IncomingTextFrame } from "@/components/call/IncomingTextFrame";
@@ -62,6 +62,11 @@ function StudioHeader() {
         <Button asChild variant="outline" size="sm">
           <Link to="/numbers">
             <Hash className="h-4 w-4" /> Phone numbers
+          </Link>
+        </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link to="/voice-models">
+            <Mic2 className="h-4 w-4" /> Voice models
           </Link>
         </Button>
         <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 font-mono text-xs">

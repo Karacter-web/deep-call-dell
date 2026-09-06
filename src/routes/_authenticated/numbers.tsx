@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Phone, PhoneCall, Search, Trash2 } from "lucide-react";
+import { Loader2, Mic2, Phone, PhoneCall, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -93,6 +93,11 @@ function NumbersPage() {
             Studio with live transcription and translation.
           </p>
         </div>
+        <Button asChild variant="outline">
+          <Link to="/voice-models">
+            <Mic2 className="h-4 w-4" /> Voice models
+          </Link>
+        </Button>
         <Button asChild variant="outline">
           <Link to="/call-studio">
             <PhoneCall className="h-4 w-4" /> Open Call Studio
