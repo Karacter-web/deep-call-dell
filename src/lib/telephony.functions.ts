@@ -305,8 +305,9 @@ export const sendSms = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
       .from("phone_numbers")
-      .select("phone_number")
+      .select("id, phone_number")
       .eq("id", data.fromId)
+      .eq("user_id", context.userId)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) throw new Error("Number not found");
