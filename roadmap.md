@@ -8,3 +8,4 @@
 - [x] Add call and SMS history with transcripts, translations, and durations
 - [ ] Verify authenticated desktop and mobile flows
 - [ ] Verify deployed webhook endpoints and document required production credentials
+- [ ] Connect Twilio fresh in the new workspace and verify gateway credentials
