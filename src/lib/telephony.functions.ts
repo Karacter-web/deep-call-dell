@@ -11,6 +11,25 @@ export type AvailableNumber = {
   capabilities: { voice?: boolean; SMS?: boolean; MMS?: boolean };
 };
 
+type TwilioIncomingNumber = {
+  sid: string;
+  phone_number: string;
+  friendly_name: string | null;
+  iso_country?: string;
+  capabilities?: Record<string, boolean>;
+};
+
+function callbackUrls(base: string, token: string) {
+  return {
+    VoiceUrl: `${base}/api/public/twilio/voice?t=${token}`,
+    VoiceMethod: "POST",
+    SmsUrl: `${base}/api/public/twilio/sms?t=${token}`,
+    SmsMethod: "POST",
+    StatusCallback: `${base}/api/public/twilio/status?t=${token}`,
+    StatusCallbackMethod: "POST",
+  };
+}
+
 const searchSchema = z.object({
   country: z.string().min(2).max(2).default("US"),
   areaCode: z.string().max(6).optional(),
@@ -75,12 +94,7 @@ export const purchaseNumber = createServerFn({ method: "POST" })
       form: {
         PhoneNumber: data.phoneNumber,
         FriendlyName: data.friendlyName ?? "Karacter Hub | Deep Call Live",
-        VoiceUrl: `${base}/api/public/twilio/voice?t=${token}`,
-        VoiceMethod: "POST",
-        SmsUrl: `${base}/api/public/twilio/sms?t=${token}`,
-        SmsMethod: "POST",
-        StatusCallback: `${base}/api/public/twilio/status?t=${token}`,
-        StatusCallbackMethod: "POST",
+        ...callbackUrls(base, token),
       },
     });
 
@@ -105,9 +119,69 @@ export const listMyNumbers = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("phone_numbers")
       .select("*")
+      .eq("user_id", context.userId)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
+  });
+
+/** Import this Twilio account's existing numbers and repair their webhook URLs. */
+export const syncTwilioNumbers = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { twilioRequest, publicBaseUrl, webhookToken } = await import("@/lib/twilio.server");
+    const base = publicBaseUrl();
+    const token = encodeURIComponent(webhookToken());
+    const inventory = await twilioRequest<{ incoming_phone_numbers?: TwilioIncomingNumber[] }>(
+      "/IncomingPhoneNumbers.json",
+      { query: { PageSize: "1000" } },
+    );
+
+    let imported = 0;
+    let updated = 0;
+    for (const number of inventory.incoming_phone_numbers ?? []) {
+      await twilioRequest(`/IncomingPhoneNumbers/${number.sid}.json`, {
+        method: "POST",
+        form: callbackUrls(base, token),
+      });
+
+      const { data: ownRow, error: lookupError } = await context.supabase
+        .from("phone_numbers")
+        .select("id")
+        .eq("user_id", context.userId)
+        .eq("twilio_sid", number.sid)
+        .maybeSingle();
+      if (lookupError) throw new Error(lookupError.message);
+
+      const record = {
+        phone_number: number.phone_number,
+        friendly_name: number.friendly_name,
+        country: number.iso_country ?? "US",
+        capabilities: number.capabilities ?? {},
+        status: "active",
+      };
+      if (ownRow) {
+        const { error } = await context.supabase
+          .from("phone_numbers")
+          .update(record)
+          .eq("id", ownRow.id)
+          .eq("user_id", context.userId);
+        if (error) throw new Error(error.message);
+        updated += 1;
+      } else {
+        const { error } = await context.supabase.from("phone_numbers").insert({
+          ...record,
+          user_id: context.userId,
+          twilio_sid: number.sid,
+        });
+        if (error) {
+          if (error.code === "23505") continue;
+          throw new Error(error.message);
+        }
+        imported += 1;
+      }
+    }
+    return { imported, updated, total: inventory.incoming_phone_numbers?.length ?? 0 };
   });
 
 /** Release a number back to Twilio and remove it from the account. */
@@ -119,6 +193,7 @@ export const releaseNumber = createServerFn({ method: "POST" })
       .from("phone_numbers")
       .select("id, twilio_sid")
       .eq("id", data.id)
+      .eq("user_id", context.userId)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) throw new Error("Number not found");
@@ -127,7 +202,12 @@ export const releaseNumber = createServerFn({ method: "POST" })
       const { twilioRequest } = await import("@/lib/twilio.server");
       await twilioRequest(`/IncomingPhoneNumbers/${row.twilio_sid}.json`, { method: "DELETE" });
     }
-    await context.supabase.from("phone_numbers").delete().eq("id", data.id);
+    const { error: deleteError } = await context.supabase
+      .from("phone_numbers")
+      .delete()
+      .eq("id", data.id)
+      .eq("user_id", context.userId);
+    if (deleteError) throw new Error(deleteError.message);
     return { ok: true };
   });
 
@@ -148,6 +228,7 @@ export const speakToCall = createServerFn({ method: "POST" })
       .from("call_sessions")
       .select("id, call_sid, source_lang, target_lang, status")
       .eq("id", data.sessionId)
+      .eq("user_id", context.userId)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!session) throw new Error("Call not found");
@@ -190,6 +271,7 @@ export const hangUpCall = createServerFn({ method: "POST" })
       .from("call_sessions")
       .select("id, call_sid")
       .eq("id", data.sessionId)
+      .eq("user_id", context.userId)
       .maybeSingle();
     if (!session) throw new Error("Call not found");
 
@@ -227,9 +309,50 @@ export const sendSms = createServerFn({ method: "POST" })
     if (!row) throw new Error("Number not found");
 
     const { twilioRequest } = await import("@/lib/twilio.server");
-    const sent = await twilioRequest<{ sid: string }>("/Messages.json", {
+    const { publicBaseUrl, webhookToken } = await import("@/lib/twilio.server");
+    const sent = await twilioRequest<{ sid: string; status?: string }>("/Messages.json", {
       method: "POST",
-      form: { From: row.phone_number, To: data.to, Body: data.body },
+      form: {
+        From: row.phone_number,
+        To: data.to,
+        Body: data.body,
+        StatusCallback: `${publicBaseUrl()}/api/public/twilio/sms?t=${encodeURIComponent(webhookToken())}&event=status`,
+      },
     });
+    const { error: saveError } = await context.supabase.from("sms_messages").insert({
+      user_id: context.userId,
+      phone_number_id: data.fromId,
+      message_sid: sent.sid,
+      direction: "outbound",
+      from_number: row.phone_number,
+      to_number: data.to,
+      body: data.body,
+      status: sent.status ?? "queued",
+      sent_at: new Date().toISOString(),
+    });
+    if (saveError) throw new Error(saveError.message);
     return { sid: sent.sid };
+  });
+
+/** Load the signed-in user's call and SMS history. */
+export const getCommunicationHistory = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const [callsResult, messagesResult] = await Promise.all([
+      context.supabase
+        .from("call_sessions")
+        .select("*, call_transcripts(*)")
+        .eq("user_id", context.userId)
+        .order("started_at", { ascending: false })
+        .limit(100),
+      context.supabase
+        .from("sms_messages")
+        .select("*")
+        .eq("user_id", context.userId)
+        .order("created_at", { ascending: false })
+        .limit(200),
+    ]);
+    if (callsResult.error) throw new Error(callsResult.error.message);
+    if (messagesResult.error) throw new Error(messagesResult.error.message);
+    return { calls: callsResult.data ?? [], messages: messagesResult.data ?? [] };
   });

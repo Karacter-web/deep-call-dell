@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, MessageSquare, Mic2, Phone, PhoneCall, Search, Send, Trash2 } from "lucide-react";
+import { History, Loader2, MessageSquare, Mic2, Phone, PhoneCall, RefreshCw, Search, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import {
   purchaseNumber,
   releaseNumber,
   searchNumbers,
+  syncTwilioNumbers,
   type AvailableNumber,
 } from "@/lib/telephony.functions";
 
@@ -49,6 +50,7 @@ function NumbersPage() {
   const buy = useServerFn(purchaseNumber);
   const release = useServerFn(releaseNumber);
   const sms = useServerFn(sendSms);
+  const sync = useServerFn(syncTwilioNumbers);
 
   const [country, setCountry] = useState("US");
   const [areaCode, setAreaCode] = useState("");
@@ -93,10 +95,21 @@ function NumbersPage() {
 
   const smsMutation = useMutation({
     mutationFn: () =>
-      sms({ data: { fromId: smsFrom!, to: smsTo.trim(), body: smsBody.trim() } }),
+      smsFrom
+        ? sms({ data: { fromId: smsFrom, to: smsTo.trim(), body: smsBody.trim() } })
+        : Promise.reject(new Error("Choose one of your numbers first.")),
     onSuccess: () => {
       toast.success("Message sent");
       setSmsBody("");
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const syncMutation = useMutation({
+    mutationFn: () => sync({}),
+    onSuccess: (data) => {
+      toast.success(`Twilio synced: ${data.imported} imported, ${data.updated} updated.`);
+      void queryClient.invalidateQueries({ queryKey: ["my-numbers"] });
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -113,16 +126,14 @@ function NumbersPage() {
             Studio with live transcription and translation.
           </p>
         </div>
-        <Button asChild variant="outline">
-          <Link to="/voice-models">
-            <Mic2 className="h-4 w-4" /> Voice models
-          </Link>
-        </Button>
-        <Button asChild variant="outline">
-          <Link to="/call-studio">
-            <PhoneCall className="h-4 w-4" /> Open Call Studio
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => syncMutation.mutate()} disabled={syncMutation.isPending}>
+            {syncMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />} Import from Twilio
+          </Button>
+          <Button asChild variant="outline"><Link to="/history"><History className="h-4 w-4" /> History</Link></Button>
+          <Button asChild variant="outline"><Link to="/voice-models"><Mic2 className="h-4 w-4" /> Voice models</Link></Button>
+          <Button asChild variant="outline"><Link to="/call-studio"><PhoneCall className="h-4 w-4" /> Open Call Studio</Link></Button>
+        </div>
       </header>
 
       <section className="panel-surface rounded-2xl p-5">

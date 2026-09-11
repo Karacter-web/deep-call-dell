@@ -19,10 +19,12 @@ export type Database = {
           call_sid: string
           created_at: string
           direction: string
+          duration_seconds: number | null
           ended_at: string | null
           from_number: string | null
           id: string
           phone_number_id: string | null
+          provider_error: string | null
           source_lang: string
           started_at: string
           status: string
@@ -35,10 +37,12 @@ export type Database = {
           call_sid: string
           created_at?: string
           direction?: string
+          duration_seconds?: number | null
           ended_at?: string | null
           from_number?: string | null
           id?: string
           phone_number_id?: string | null
+          provider_error?: string | null
           source_lang?: string
           started_at?: string
           status?: string
@@ -51,10 +55,12 @@ export type Database = {
           call_sid?: string
           created_at?: string
           direction?: string
+          duration_seconds?: number | null
           ended_at?: string | null
           from_number?: string | null
           id?: string
           phone_number_id?: string | null
+          provider_error?: string | null
           source_lang?: string
           started_at?: string
           status?: string
@@ -185,6 +191,75 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      sms_messages: {
+        Row: {
+          body: string
+          created_at: string
+          delivered_at: string | null
+          direction: string
+          error_code: string | null
+          error_message: string | null
+          from_number: string
+          id: string
+          message_sid: string | null
+          phone_number_id: string | null
+          sent_at: string | null
+          status: string
+          to_number: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          delivered_at?: string | null
+          direction: string
+          error_code?: string | null
+          error_message?: string | null
+          from_number: string
+          id?: string
+          message_sid?: string | null
+          phone_number_id?: string | null
+          sent_at?: string | null
+          status?: string
+          to_number: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          delivered_at?: string | null
+          direction?: string
+          error_code?: string | null
+          error_message?: string | null
+          from_number?: string
+          id?: string
+          message_sid?: string | null
+          phone_number_id?: string | null
+          sent_at?: string | null
+          status?: string
+          to_number?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sms_messages_phone_number_id_fkey"
+            columns: ["phone_number_id"]
+            isOneToOne: false
+            referencedRelation: "phone_numbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sms_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -319,13 +394,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       app_role: "admin" | "agent" | "customer"

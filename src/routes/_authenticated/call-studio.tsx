@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Radio, Hash, Mic2 } from "lucide-react";
+import { Radio, Hash, History, Mic2 } from "lucide-react";
 import { CallStudioProvider, useCallStudio } from "@/context/CallStudioContext";
 import { AudioInput } from "@/components/call/AudioInput";
 import { IncomingTextFrame } from "@/components/call/IncomingTextFrame";
@@ -59,6 +59,11 @@ function StudioHeader() {
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-2">
+        <Button asChild variant="outline" size="sm">
+          <Link to="/history">
+            <History className="h-4 w-4" /> History
+          </Link>
+        </Button>
         <Button asChild variant="outline" size="sm">
           <Link to="/numbers">
             <Hash className="h-4 w-4" /> Phone numbers
