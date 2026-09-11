@@ -107,7 +107,10 @@ export const purchaseNumber = createServerFn({ method: "POST" })
       capabilities: bought.capabilities ?? {},
       status: "active",
     });
-    if (error) throw new Error(error.message);
+    if (error) {
+      await twilioRequest(`/IncomingPhoneNumbers/${bought.sid}.json`, { method: "DELETE" }).catch(() => {});
+      throw new Error(error.message);
+    }
 
     return { phoneNumber: bought.phone_number, sid: bought.sid };
   });
@@ -302,14 +305,14 @@ export const sendSms = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
       .from("phone_numbers")
-      .select("phone_number")
+      .select("id, phone_number")
       .eq("id", data.fromId)
+      .eq("user_id", context.userId)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) throw new Error("Number not found");
 
-    const { twilioRequest } = await import("@/lib/twilio.server");
-    const { publicBaseUrl, webhookToken } = await import("@/lib/twilio.server");
+    const { twilioRequest, publicBaseUrl, webhookToken } = await import("@/lib/twilio.server");
     const sent = await twilioRequest<{ sid: string; status?: string }>("/Messages.json", {
       method: "POST",
       form: {
