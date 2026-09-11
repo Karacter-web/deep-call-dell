@@ -15,6 +15,9 @@ export const Route = createFileRoute("/api/public/twilio/status")({
         const callSid = params.get("CallSid");
         const callStatus = params.get("CallStatus") ?? "completed";
         const ended = ["completed", "busy", "failed", "no-answer", "canceled"].includes(callStatus);
+        const durationValue = params.get("CallDuration") ?? params.get("Duration");
+        const duration = durationValue ? Number(durationValue) : null;
+        const providerError = params.get("ErrorMessage") ?? params.get("ErrorCode");
 
         if (callSid) {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -23,6 +26,10 @@ export const Route = createFileRoute("/api/public/twilio/status")({
             .update({
               status: ended ? "ended" : callStatus,
               ...(ended ? { ended_at: new Date().toISOString() } : {}),
+              ...(duration !== null && Number.isFinite(duration)
+                ? { duration_seconds: duration }
+                : {}),
+              ...(providerError ? { provider_error: providerError } : {}),
             })
             .eq("call_sid", callSid);
         }
