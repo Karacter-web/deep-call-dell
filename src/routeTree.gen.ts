@@ -20,6 +20,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthenticatedCallStudioRouteImport } from './routes/_authenticated/call-studio'
+import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticated/history'
 import { Route as AuthenticatedNumbersRouteImport } from './routes/_authenticated/numbers'
 import { Route as AuthenticatedVoiceModelsRouteImport } from './routes/_authenticated/voice-models'
 import { Route as ApiPublicTwilioSmsRouteImport } from './routes/api/public/twilio/sms'
@@ -81,6 +82,11 @@ const AuthenticatedCallStudioRoute = AuthenticatedCallStudioRouteImport.update({
   path: '/call-studio',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedHistoryRoute = AuthenticatedHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedNumbersRoute = AuthenticatedNumbersRouteImport.update({
   id: '/numbers',
   path: '/numbers',
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/call-studio': typeof AuthenticatedCallStudioRoute
+  '/history': typeof AuthenticatedHistoryRoute
   '/numbers': typeof AuthenticatedNumbersRoute
   '/voice-models': typeof AuthenticatedVoiceModelsRoute
   '/api/public/twilio/sms': typeof ApiPublicTwilioSmsRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/call-studio': typeof AuthenticatedCallStudioRoute
+  '/history': typeof AuthenticatedHistoryRoute
   '/numbers': typeof AuthenticatedNumbersRoute
   '/voice-models': typeof AuthenticatedVoiceModelsRoute
   '/api/public/twilio/sms': typeof ApiPublicTwilioSmsRoute
@@ -163,6 +171,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/_authenticated/call-studio': typeof AuthenticatedCallStudioRoute
+  '/_authenticated/history': typeof AuthenticatedHistoryRoute
   '/_authenticated/numbers': typeof AuthenticatedNumbersRoute
   '/_authenticated/voice-models': typeof AuthenticatedVoiceModelsRoute
   '/api/public/twilio/sms': typeof ApiPublicTwilioSmsRoute
@@ -183,6 +192,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/call-studio'
+    | '/history'
     | '/numbers'
     | '/voice-models'
     | '/api/public/twilio/sms'
@@ -201,6 +211,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/call-studio'
+    | '/history'
     | '/numbers'
     | '/voice-models'
     | '/api/public/twilio/sms'
@@ -220,6 +231,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/_authenticated/call-studio'
+    | '/_authenticated/history'
     | '/_authenticated/numbers'
     | '/_authenticated/voice-models'
     | '/api/public/twilio/sms'
@@ -324,6 +336,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCallStudioRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/history': {
+      id: '/_authenticated/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof AuthenticatedHistoryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/numbers': {
       id: '/_authenticated/numbers'
       path: '/numbers'
@@ -371,12 +390,14 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCallStudioRoute: typeof AuthenticatedCallStudioRoute
+  AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRoute
   AuthenticatedNumbersRoute: typeof AuthenticatedNumbersRoute
   AuthenticatedVoiceModelsRoute: typeof AuthenticatedVoiceModelsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCallStudioRoute: AuthenticatedCallStudioRoute,
+  AuthenticatedHistoryRoute: AuthenticatedHistoryRoute,
   AuthenticatedNumbersRoute: AuthenticatedNumbersRoute,
   AuthenticatedVoiceModelsRoute: AuthenticatedVoiceModelsRoute,
 }
