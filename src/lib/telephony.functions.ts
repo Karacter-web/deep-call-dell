@@ -214,6 +214,69 @@ export const releaseNumber = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Place an outbound call from one of the user's numbers; audio streams to Call Studio. */
+export const dialNumber = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        fromId: z.string().uuid(),
+        to: z.string().min(5).max(20),
+        sourceLang: z.string().min(2).max(5).default("en"),
+        targetLang: z.string().min(2).max(5).default("es"),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase
+      .from("phone_numbers")
+      .select("id, phone_number")
+      .eq("id", data.fromId)
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) throw new Error("Number not found");
+
+    const { twilioRequest, publicBaseUrl, webhookToken } = await import("@/lib/twilio.server");
+    const base = publicBaseUrl();
+    const token = encodeURIComponent(webhookToken());
+
+    const call = await twilioRequest<{ sid: string; status?: string }>("/Calls.json", {
+      method: "POST",
+      form: {
+        To: data.to,
+        From: row.phone_number,
+        Url: `${base}/api/public/twilio/outbound?t=${token}`,
+        Method: "POST",
+        StatusCallback: `${base}/api/public/twilio/status?t=${token}`,
+        StatusCallbackMethod: "POST",
+        MachineDetection: "Enable",
+      },
+    });
+
+    const { data: session, error: saveError } = await context.supabase
+      .from("call_sessions")
+      .upsert(
+        {
+          call_sid: call.sid,
+          user_id: context.userId,
+          phone_number_id: row.id,
+          from_number: row.phone_number,
+          to_number: data.to,
+          direction: "outbound",
+          status: "connecting",
+          source_lang: data.sourceLang,
+          target_lang: data.targetLang,
+        },
+        { onConflict: "call_sid" },
+      )
+      .select("id")
+      .single();
+    if (saveError) throw new Error(saveError.message);
+
+    return { sid: call.sid, sessionId: session.id };
+  });
+
 /** Speak text (optionally translated) into the caller's live call. */
 export const speakToCall = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
