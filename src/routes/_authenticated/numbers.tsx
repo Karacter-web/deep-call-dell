@@ -44,6 +44,15 @@ export const Route = createFileRoute("/_authenticated/numbers")({
 
 const COUNTRIES = ["US", "CA", "GB", "AU", "NG", "DE", "FR", "ES"];
 
+const CALL_LANGS = [
+  { code: "en", label: "English" },
+  { code: "es", label: "Spanish" },
+  { code: "fr", label: "French" },
+  { code: "de", label: "German" },
+  { code: "pt", label: "Portuguese" },
+  { code: "ar", label: "Arabic" },
+];
+
 function NumbersPage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -295,6 +304,101 @@ function NumbersPage() {
             ))}
           </ul>
         ) : null}
+      </section>
+
+      <section className="panel-surface rounded-2xl p-5">
+        <h2 className="text-lg font-semibold">Make a call</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Dial anyone from one of your numbers. Live speech and its translation stream straight
+          into Call Studio, where you can reply out loud.
+        </p>
+        <form
+          className="mt-4 grid gap-3 sm:grid-cols-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!callFrom) {
+              toast.error("Choose one of your numbers to call from.");
+              return;
+            }
+            dialMutation.mutate();
+          }}
+        >
+          <div className="grid gap-1.5">
+            <Label htmlFor="call-from" className="text-xs text-muted-foreground">
+              Call from
+            </Label>
+            <select
+              id="call-from"
+              value={callFrom ?? ""}
+              onChange={(e) => setCallFrom(e.target.value || null)}
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="">Select a number</option>
+              {(mine.data ?? []).map((n) => (
+                <option key={n.id} value={n.id}>
+                  {n.phone_number}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="call-to" className="text-xs text-muted-foreground">
+              Call to
+            </Label>
+            <Input
+              id="call-to"
+              value={callTo}
+              onChange={(e) => setCallTo(e.target.value)}
+              placeholder="+15558675310"
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="call-source" className="text-xs text-muted-foreground">
+              They speak
+            </Label>
+            <select
+              id="call-source"
+              value={callSourceLang}
+              onChange={(e) => setCallSourceLang(e.target.value)}
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              {CALL_LANGS.map((l) => (
+                <option key={l.code} value={l.code}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="call-target" className="text-xs text-muted-foreground">
+              Translate to
+            </Label>
+            <select
+              id="call-target"
+              value={callTargetLang}
+              onChange={(e) => setCallTargetLang(e.target.value)}
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              {CALL_LANGS.map((l) => (
+                <option key={l.code} value={l.code}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <Button
+            type="submit"
+            className="w-fit"
+            disabled={dialMutation.isPending || !callTo.trim()}
+          >
+            {dialMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <PhoneCall className="h-4 w-4" />
+            )}
+            Dial now
+          </Button>
+        </form>
       </section>
 
       <section className="panel-surface rounded-2xl p-5">
