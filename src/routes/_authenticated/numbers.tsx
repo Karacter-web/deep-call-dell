@@ -120,6 +120,25 @@ function NumbersPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const dialMutation = useMutation({
+    mutationFn: () =>
+      callFrom
+        ? dial({
+            data: {
+              fromId: callFrom,
+              to: callTo.trim(),
+              sourceLang: callSourceLang,
+              targetLang: callTargetLang,
+            },
+          })
+        : Promise.reject(new Error("Choose one of your numbers to call from.")),
+    onSuccess: () => {
+      toast.success("Dialing — live audio will appear in Call Studio.");
+      void navigate({ to: "/call-studio" });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 p-4 md:p-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
