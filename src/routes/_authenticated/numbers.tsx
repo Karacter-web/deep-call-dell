@@ -52,6 +52,7 @@ function NumbersPage() {
   const release = useServerFn(releaseNumber);
   const sms = useServerFn(sendSms);
   const sync = useServerFn(syncTwilioNumbers);
+  const dial = useServerFn(dialNumber);
 
   const [country, setCountry] = useState("US");
   const [areaCode, setAreaCode] = useState("");
@@ -60,6 +61,10 @@ function NumbersPage() {
   const [smsTo, setSmsTo] = useState("");
   const [smsBody, setSmsBody] = useState("");
   const [smsFrom, setSmsFrom] = useState<string | null>(null);
+  const [callFrom, setCallFrom] = useState<string | null>(null);
+  const [callTo, setCallTo] = useState("");
+  const [callSourceLang, setCallSourceLang] = useState("en");
+  const [callTargetLang, setCallTargetLang] = useState("es");
 
   const mine = useQuery({ queryKey: ["my-numbers"], queryFn: () => fetchMine({}) });
 
