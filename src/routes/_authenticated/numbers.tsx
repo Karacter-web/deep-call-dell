@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { History, Loader2, MessageSquare, Mic2, Phone, PhoneCall, RefreshCw, Search, Send, Trash2 } from "lucide-react";
@@ -46,6 +46,7 @@ const COUNTRIES = ["US", "CA", "GB", "AU", "NG", "DE", "FR", "ES"];
 
 function NumbersPage() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const fetchMine = useServerFn(listMyNumbers);
   const search = useServerFn(searchNumbers);
   const buy = useServerFn(purchaseNumber);
