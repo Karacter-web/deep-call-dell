@@ -57,7 +57,7 @@ function buildInstructions(input: {
   stability: number;
   similarity: number;
   pitch: number;
-  description?: string | null;
+  description?: string | null | undefined;
 }) {
   const language = LANGUAGE_NAMES[input.language] ?? input.language;
   const expressive = input.stability < 0.45;
