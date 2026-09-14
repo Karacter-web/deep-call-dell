@@ -8,11 +8,29 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import * as Sentry from "@sentry/react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "../context/AuthContext";
 import { Toaster } from "../components/ui/sonner";
+
+// Initialize Sentry for error tracking
+if (import.meta.env.VITE_SENTRY_DSN) {
+  Sentry.init({
+    dsn: import.meta.env.VITE_SENTRY_DSN,
+    integrations: [new Sentry.BrowserTracing()],
+    tracesSampleRate: 1.0,
+    environment: import.meta.env.MODE || "development",
+    release: "karacter-hub-deep-call@1.0.0",
+    beforeSend(event) {
+      // Filter out sensitive data or specific error types if needed
+      if (event.request?.url?.includes("/api/")) {
+        return null;
+      }
+      return event;
+    },
+  });
+}
 
 function NotFoundComponent() {
   return (
@@ -40,7 +58,15 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    // Report error to Sentry with context
+    Sentry.captureException(error, {
+      contexts: {
+        react: {
+          boundary: "tanstack_root_error_component",
+          location: window.location.pathname,
+        },
+      },
+    });
   }, [error]);
 
   return (
